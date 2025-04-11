@@ -5,9 +5,9 @@ import { MessageList } from './chat/MessageList';
 import { SuggestedResponses } from './chat/SuggestedResponses';
 import { useChatStore } from '../store/chatStore';
 import { handleUserMessage } from '../utils/conversationUtils';
-import { createMessage,} from '../utils/chatUtils';
-
-
+import { createMessage } from '../utils/chatUtils';
+import { TalkTherapy } from './chat/TalkTherapy';
+import { speakMessage } from '../utils/speakMessage';
 const ChatInterface: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'chat' | 'therapy'>('chat');
   const { messages, addMessage } = useChatStore();
@@ -23,7 +23,6 @@ const ChatInterface: React.FC = () => {
   }, [messages]);
 
   const handleSend = async (content: string) => {
-    
     if (!content.trim()) return;
 
     const userMessage = createMessage(content, 'user');
@@ -32,16 +31,16 @@ const ChatInterface: React.FC = () => {
 
     setTimeout(() => {
       const replies = handleUserMessage(content);
-      replies.forEach(reply => {
+      replies.forEach((reply) => {
         const botMessage = createMessage(reply, 'bot');
         addMessage(botMessage);
-    });
+        speakMessage(reply);
+      });
     }, 1000);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 py-4 px-6">
-      
       {/* Tabs */}
       <div className="flex justify-center mb-6 gap-4">
         <button
@@ -66,15 +65,16 @@ const ChatInterface: React.FC = () => {
         </button>
       </div>
 
-      {/* Chat View */}
+      {/* Chat or Therapy View */}
       {activeTab === 'chat' ? (
-        <div className="flex flex-col w-full max-w-6xl h-[85vh] bg-white/80 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden">
-
+        <div className="flex flex-col w-full max-w-6xl h-[85vh] bg-white/80 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden mx-auto">
           <div className="p-4 border-b">
             <h2 className="text-xl font-semibold text-gray-800">Your Safe Space</h2>
             <p className="text-sm text-gray-600">Share your thoughts and feelings freely</p>
           </div>
+
           <MessageList messages={messages} messagesEndRef={messagesEndRef} />
+
           <div className="p-4 border-t bg-white/70 rounded-b-xl">
             <QuickReplies onSelect={(reply) => handleSend(reply)} />
 
@@ -108,16 +108,8 @@ const ChatInterface: React.FC = () => {
           </div>
         </div>
       ) : (
-        // Talk Therapy Tab
-        <div className="flex flex-col items-center justify-center text-center bg-white/80 p-8 rounded-xl shadow-lg">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-2">Meet Your Talk Therapist</h2>
-          <p className="text-gray-600 mb-6">
-            This is a safe space to express yourself freely. Your virtual therapist is here to listen.
-          </p>
-          <div className="w-48 h-48 bg-gradient-to-br from-pink-300 to-purple-300 rounded-full shadow-inner flex items-center justify-center text-6xl text-white">
-            👩🏻‍⚕️
-          </div>
-          <p className="mt-4 text-gray-700">(Coming to life soon...)</p>
+        <div className="bg-white/80 p-6 rounded-xl shadow-lg max-w-4xl mx-auto">
+          <TalkTherapy />
         </div>
       )}
     </div>
