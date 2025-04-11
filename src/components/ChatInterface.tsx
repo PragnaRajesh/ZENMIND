@@ -4,13 +4,14 @@ import { QuickReplies } from './chat/QuickReplies';
 import { MessageList } from './chat/MessageList';
 import { SuggestedResponses } from './chat/SuggestedResponses';
 import { useChatStore } from '../store/chatStore';
-import { createMessage, generateBotResponse } from '../utils/chatUtils';
+import { handleUserMessage } from '../utils/conversationUtils';
+import { createMessage,} from '../utils/chatUtils';
+
 
 const ChatInterface: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'chat' | 'therapy'>('chat');
   const { messages, addMessage } = useChatStore();
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -22,17 +23,19 @@ const ChatInterface: React.FC = () => {
   }, [messages]);
 
   const handleSend = async (content: string) => {
+    
     if (!content.trim()) return;
 
     const userMessage = createMessage(content, 'user');
     addMessage(userMessage);
     setInput('');
-    setIsTyping(true);
 
     setTimeout(() => {
-      const botResponse = createMessage(generateBotResponse(userMessage), 'bot');
-      addMessage(botResponse);
-      setIsTyping(false);
+      const replies = handleUserMessage(content);
+      replies.forEach(reply => {
+        const botMessage = createMessage(reply, 'bot');
+        addMessage(botMessage);
+    });
     }, 1000);
   };
 
@@ -65,14 +68,13 @@ const ChatInterface: React.FC = () => {
 
       {/* Chat View */}
       {activeTab === 'chat' ? (
-        <div className="flex flex-col h-[calc(100vh-16rem)] bg-white/70 backdrop-blur-sm rounded-xl shadow-md">
+        <div className="flex flex-col w-full max-w-6xl h-[85vh] bg-white/80 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden">
+
           <div className="p-4 border-b">
             <h2 className="text-xl font-semibold text-gray-800">Your Safe Space</h2>
             <p className="text-sm text-gray-600">Share your thoughts and feelings freely</p>
           </div>
-
-          <MessageList messages={messages} isTyping={isTyping} />
-
+          <MessageList messages={messages} messagesEndRef={messagesEndRef} />
           <div className="p-4 border-t bg-white/70 rounded-b-xl">
             <QuickReplies onSelect={(reply) => handleSend(reply)} />
 

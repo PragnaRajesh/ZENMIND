@@ -4,10 +4,10 @@ import { MessageBubble } from './MessageBubble';
 
 interface MessageListProps {
   messages: Message[];
-  isTyping: boolean;
+  messagesEndRef: React.RefObject<HTMLDivElement>;
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, isTyping }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages}) => {
   return (
     <div className="flex flex-col gap-2 p-4 overflow-y-auto">
       {messages.map((msg) => (
@@ -15,9 +15,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isTyping }) 
           <MessageBubble message={msg} />
         </div>
       ))}
-      {isTyping && (
-        <div className="flex justify-start text-sm text-gray-400 italic">Typing...</div>
-      )}
     </div>
   );
 };

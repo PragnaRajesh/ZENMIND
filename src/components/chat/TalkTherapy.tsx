@@ -1,4 +1,3 @@
-import React from 'react';
 import avatar from '../../assets/therapist-avatar.png'; // the one you finalized
 
 export const TalkTherapy = () => {
