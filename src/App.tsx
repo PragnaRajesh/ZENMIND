@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Navigation } from './components/Navigation';
 import { Login } from './components/Login';
-import { ChatInterface } from './components/ChatInterface';
+import ChatInterface from './components/ChatInterface'; // ✅ default import
 import { WellnessTips } from './components/WellnessTips';
 import { HealingLibrary } from './components/HealingLibrary';
 import { Hotlines } from './components/Hotlines';
@@ -24,6 +24,8 @@ function App() {
         <Navigation />
         <Routes>
           <Route path="/login" element={<Login />} />
+
+          {/* ✅ Protected Chat Route */}
           <Route
             path="/chat"
             element={
@@ -37,54 +39,16 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route
-            path="/wellness"
-            element={
-              <PrivateRoute>
-                <WellnessTips />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/library"
-            element={
-              <PrivateRoute>
-                <HealingLibrary />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/hotlines"
-            element={
-              <PrivateRoute>
-                <Hotlines />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/stats"
-            element={
-              <PrivateRoute>
-                <Statistics />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/feedback"
-            element={
-              <PrivateRoute>
-                <Feedback />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/brain-breaks"
-            element={
-              <PrivateRoute>
-                <BrainBreaks />
-              </PrivateRoute>
-            }
-          />
+
+          {/* ✅ Other protected routes */}
+          <Route path="/wellness" element={<PrivateRoute><WellnessTips /></PrivateRoute>} />
+          <Route path="/library" element={<PrivateRoute><HealingLibrary /></PrivateRoute>} />
+          <Route path="/hotlines" element={<PrivateRoute><Hotlines /></PrivateRoute>} />
+          <Route path="/stats" element={<PrivateRoute><Statistics /></PrivateRoute>} />
+          <Route path="/feedback" element={<PrivateRoute><Feedback /></PrivateRoute>} />
+          <Route path="/brain-breaks" element={<PrivateRoute><BrainBreaks /></PrivateRoute>} />
+
+          {/* ✅ Redirect root to chat */}
           <Route path="/" element={<Navigate to="/chat" replace />} />
         </Routes>
       </div>

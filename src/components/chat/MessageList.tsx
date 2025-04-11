@@ -1,7 +1,6 @@
 import React from 'react';
 import { Message } from '../../types';
 import { MessageBubble } from './MessageBubble';
-import { BotTypingIndicator } from './BotTypingIndicator';
 
 interface MessageListProps {
   messages: Message[];
@@ -10,16 +9,15 @@ interface MessageListProps {
 
 export const MessageList: React.FC<MessageListProps> = ({ messages, isTyping }) => {
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      {messages.map((message) => (
-        <div
-          key={message.id}
-          className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-        >
-          <MessageBubble message={message} />
+    <div className="flex flex-col gap-2 p-4 overflow-y-auto">
+      {messages.map((msg) => (
+        <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <MessageBubble message={msg} />
         </div>
       ))}
-      {isTyping && <BotTypingIndicator />}
+      {isTyping && (
+        <div className="flex justify-start text-sm text-gray-400 italic">Typing...</div>
+      )}
     </div>
   );
 };

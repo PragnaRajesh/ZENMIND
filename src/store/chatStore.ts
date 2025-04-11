@@ -3,12 +3,17 @@ import { Message } from '../types';
 
 interface ChatState {
   messages: Message[];
+  input: string;
+  setInput: (value: string) => void;
   addMessage: (message: Message) => void;
-  clearMessages: () => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
   messages: [],
-  addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
-  clearMessages: () => set({ messages: [] }),
+  input: '',
+  setInput: (value) => set({ input: value }),
+  addMessage: (message) =>
+    set((state) => ({
+      messages: [...state.messages, message],
+    })),
 }));
