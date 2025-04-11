@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { handleUserMessage } from '../utils/conversationUtils';
 import { Send, Smile } from 'lucide-react';
 import { QuickReplies } from './chat/QuickReplies';
 import { MessageList } from './chat/MessageList';
@@ -22,20 +23,23 @@ export const ChatInterface: React.FC = () => {
 
   const handleSend = async (content: string) => {
     if (!content.trim()) return;
-
+  
     const userMessage = createMessage(content, 'user');
     addMessage(userMessage);
     setInput('');
     setIsTyping(true);
-
-    // Simulate bot thinking and generate response
+  
+    // Bot response using smart conversation handler
     setTimeout(() => {
-      const botResponse = createMessage(generateBotResponse(userMessage), 'bot');
-      addMessage(botResponse);
+      const replies = handleUserMessage(content); // 🧠 New logic from your utils
+      replies.forEach(reply => {
+        const botMessage = createMessage(reply, 'bot');
+        addMessage(botMessage);
+      });
       setIsTyping(false);
     }, 1000);
   };
-
+  
   return (
     <div className="flex flex-col h-[calc(100vh-16rem)] bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl shadow-lg">
       <div className="p-4 bg-white/80 backdrop-blur-sm rounded-t-xl border-b">
