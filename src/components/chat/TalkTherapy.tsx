@@ -1,103 +1,143 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import avatar from '../../assets/therapist-avatar.png';
+import dataset from '../../data/therapy_dataset_large.json';
 
-const moodScripts: Record<string, string> = {
-  anxious: "I hear you're feeling anxious. Let’s try a calming breathing technique together. Inhale... and exhale.",
-  sad: "I'm sorry you're feeling low. Want to share what’s on your heart?",
-  frustrated: "That frustration is valid. Would it help to vent for a moment?",
-  calm: "I'm glad you're feeling calm. Let’s hold onto that peaceful energy together.",
-  numb: "Feeling numb can be confusing. We can explore it together, gently."
+// 🛠️ Stop commands
+const stopWords = ['stop', 'done', 'enough', 'no more', 'that’s it'];
+
+// 🎤 Respond with voice
+const speak = (text: string, onEndCallback?: () => void) => {
+  const utterance = new SpeechSynthesisUtterance(text);
+  const voices = window.speechSynthesis.getVoices();
+
+  const preferredVoices = [
+    'Google UK English Female',
+    'Samantha',
+    'Karen',
+    'Martha',
+    'Shelley (English (United States))',
+  ];
+
+  const selectedVoice = voices.find((v) => preferredVoices.includes(v.name));
+  if (selectedVoice) utterance.voice = selectedVoice;
+
+  utterance.rate = 0.95;
+  utterance.pitch = 1.05;
+  utterance.volume = 1;
+
+  utterance.onend = () => {
+    onEndCallback?.();
+  };
+
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utterance);
 };
 
-export const TalkTherapy: React.FC = () => {
-  const [selectedMood, setSelectedMood] = useState('');
-  const [spokenText, setSpokenText] = useState('');
-  const [listening, setListening] = useState(false);
+// 🔍 Match input to dataset
+const findMatchingCategory = (input: string) => {
+  const text = input.toLowerCase();
+  return dataset.find((item) =>
+    item.triggers.some((t: string) => text.includes(t))
+  );
+};
 
-  // Speak aloud using text-to-speech
-  const speak = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice =
-      speechSynthesis.getVoices().find(v => v.name.includes('Female') || v.lang.includes('en')) ||
-      speechSynthesis.getVoices()[0];
-    speechSynthesis.speak(utterance);
-  };
+const findResponse = (input: string): string => {
+  const text = input.toLowerCase();
 
-  // Voice input from user
-  const handleMicInput = () => {
-    const recognition = new (window as any).webkitSpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+  if (stopWords.some((word) => text.includes(word))) {
+    return "Thank you for sharing with me. I'm here whenever you need me again.";
+  }
 
+  const matched = findMatchingCategory(input);
+  if (matched) {
+    const followups = matched.follow_ups || [];
+    const nextFollowUp =
+      followups[Math.floor(Math.random() * followups.length)] || '';
+    return `${matched.first_response} ${nextFollowUp} ${matched.affirmation}`;
+  }
+
+  return "I'm here to listen. Tell me more about what's on your mind.";
+};
+
+const TalkTherapy: React.FC = () => {
+  const [isListening, setIsListening] = useState(false);
+
+  const SpeechRecognition =
+    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+
+  // 🎙️ Start / stop mic
+  const startListening = () => {
     recognition.start();
-    setListening(true);
-
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setSpokenText(transcript);
-      setListening(false);
-    };
-
-    recognition.onerror = () => {
-      setListening(false);
-    };
+    setIsListening(true);
   };
 
-  // Speak when a mood is selected
-  useEffect(() => {
-    if (selectedMood) {
-      const message = moodScripts[selectedMood];
-      speak(message);
+  const stopListening = () => {
+    recognition.stop();
+    setIsListening(false);
+  };
+
+  recognition.onresult = (event: any) => {
+    const spokenText = event.results[0][0].transcript.toLowerCase();
+
+    if (stopWords.some((word) => spokenText.includes(word))) {
+      stopListening();
+      const goodbye = findResponse(spokenText);
+      speak(goodbye); // Final response without chaining
+      return;
     }
-  }, [selectedMood]);
+
+    const response = findResponse(spokenText);
+    speak(response, () => {
+      setTimeout(() => startListening(), 1500);
+    });
+  };
+
+  recognition.onerror = (event: any) => {
+    console.error('Speech recognition error:', event.error);
+    setIsListening(false);
+  };
+
+  useEffect(() => {
+    const preload = () => window.speechSynthesis.getVoices();
+    if (typeof window !== 'undefined') {
+      window.speechSynthesis.onvoiceschanged = preload;
+      preload();
+    }
+  }, []);
 
   return (
     <div className="flex flex-col items-center text-center bg-white/80 p-8 rounded-xl shadow-lg max-w-xl mx-auto">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-2">Talk Therapy Session</h2>
+      <h2 className="text-2xl font-semibold text-gray-800 mb-2">Talk Therapy</h2>
       <p className="text-gray-600 mb-4 max-w-md">
-        You're not alone. Your therapist is here to listen, understand, and guide you — at your pace.
+        Your therapist is here to listen, understand, and guide you — at your pace.
       </p>
 
-      <div className="w-60 h-auto mb-4">
+      <div className="w-56 h-auto mb-4">
         <img
           src={avatar}
           alt="Therapist Avatar"
-          className="w-full h-auto rounded-xl shadow-md bg-gradient-to-br from-pink-100 to-purple-100 animate-pulse"
+          className="w-full h-auto rounded-xl shadow-md bg-gradient-to-br from-pink-100 to-purple-100"
         />
       </div>
 
-      <p className="text-sm text-gray-500 italic mb-6">
+      <button
+        onClick={isListening ? stopListening : startListening}
+        className={`px-5 py-2 mt-4 rounded-full text-white transition-all ${
+          isListening ? 'bg-red-500' : 'bg-pink-500 hover:bg-pink-600'
+        }`}
+      >
+        {isListening ? 'Stop Listening' : 'Speak to Therapist'}
+      </button>
+
+      <p className="mt-4 text-gray-500 text-xs italic">
         “I'm here whenever you're ready to talk.”
       </p>
-
-      {/* Mood Buttons */}
-      <div className="mb-6">
-        <p className="text-gray-700 font-medium mb-2">How are you feeling today?</p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <button onClick={() => setSelectedMood('anxious')} className="text-xl px-4 py-2 bg-white rounded-full border hover:bg-purple-100">😰 Anxious</button>
-          <button onClick={() => setSelectedMood('sad')} className="text-xl px-4 py-2 bg-white rounded-full border hover:bg-purple-100">😔 Low</button>
-          <button onClick={() => setSelectedMood('frustrated')} className="text-xl px-4 py-2 bg-white rounded-full border hover:bg-purple-100">😠 Frustrated</button>
-          <button onClick={() => setSelectedMood('calm')} className="text-xl px-4 py-2 bg-white rounded-full border hover:bg-purple-100">😌 Calm</button>
-          <button onClick={() => setSelectedMood('numb')} className="text-xl px-4 py-2 bg-white rounded-full border hover:bg-purple-100">😐 Numb</button>
-        </div>
-      </div>
-
-      {/* Mic Input */}
-      <div className="mb-3">
-        <p className="text-gray-700 font-medium mb-2">Want to say something?</p>
-        <button
-          onClick={handleMicInput}
-          className={`px-4 py-2 rounded-full bg-purple-600 text-white hover:bg-purple-700 transition ${
-            listening ? 'animate-pulse' : ''
-          }`}
-        >
-          🎤 Speak Now
-        </button>
-        {spokenText && (
-          <p className="text-gray-600 italic mt-3">You said: “{spokenText}”</p>
-        )}
-      </div>
     </div>
   );
 };
+
+export default TalkTherapy;

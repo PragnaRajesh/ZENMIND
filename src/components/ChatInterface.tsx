@@ -6,8 +6,7 @@ import { SuggestedResponses } from './chat/SuggestedResponses';
 import { useChatStore } from '../store/chatStore';
 import { handleUserMessage } from '../utils/conversationUtils';
 import { createMessage } from '../utils/chatUtils';
-import { TalkTherapy } from './chat/TalkTherapy';
-import { speakMessage } from '../utils/speakMessage';
+import TalkTherapy from './chat/TalkTherapy';
 const ChatInterface: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'chat' | 'therapy'>('chat');
   const { messages, addMessage } = useChatStore();
@@ -34,7 +33,6 @@ const ChatInterface: React.FC = () => {
       replies.forEach((reply) => {
         const botMessage = createMessage(reply, 'bot');
         addMessage(botMessage);
-        speakMessage(reply);
       });
     }, 1000);
   };
