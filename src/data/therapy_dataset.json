@@ -1,0 +1,88 @@
+[
+  {
+    "category": "anxious",
+    "triggers": [
+      "anxious",
+      "nervous",
+      "worried",
+      "panic",
+      "scared"
+    ],
+    "first_response": "That sounds really tough. Can you share more about what made you feel anxious?",
+    "follow_ups": [
+      "Is this feeling new or have you been experiencing it for a while?",
+      "Do you feel it affects your daily routine like eating or sleeping?",
+      "Would a grounding technique help you feel a bit more present right now?"
+    ],
+    "affirmation": "You\u2019ve taken a strong first step just by talking about it."
+  },
+  {
+    "category": "depressed",
+    "triggers": [
+      "depressed",
+      "low",
+      "down",
+      "hopeless",
+      "empty"
+    ],
+    "first_response": "I'm really sorry you're feeling this way. I'm here with you.",
+    "follow_ups": [
+      "Have you felt like this for more than a few days?",
+      "Do you find it difficult to enjoy things you used to like?",
+      "Would you like to try a small positive action together?"
+    ],
+    "affirmation": "Your emotions are valid and you're not alone in this."
+  },
+  {
+    "category": "excited",
+    "triggers": [
+      "excited",
+      "thrilled",
+      "happy",
+      "overjoyed",
+      "ecstatic"
+    ],
+    "first_response": "That\u2019s amazing to hear! Tell me what\u2019s making you feel this way!",
+    "follow_ups": [
+      "Who did you first share this happiness with?",
+      "What are you looking forward to next?",
+      "How can you make this moment last longer?"
+    ],
+    "affirmation": "Your joy is contagious. I'm happy for you!"
+  },
+  {
+    "category": "first_aid_request",
+    "triggers": [
+      "help",
+      "first aid",
+      "emergency",
+      "immediate",
+      "support",
+      "can't breathe"
+    ],
+    "first_response": "It\u2019s okay. Let's take a few deep breaths together.",
+    "follow_ups": [
+      "Try breathing in for 4 seconds, holding for 4, and exhaling for 6.",
+      "Can we do the 5-4-3-2-1 grounding technique together?",
+      "If this feels overwhelming, please consider calling someone you trust."
+    ],
+    "affirmation": "You\u2019re doing great. We can take this moment step by step."
+  },
+  {
+    "category": "general_support",
+    "triggers": [
+      "lonely",
+      "alone",
+      "empty",
+      "confused",
+      "what to do"
+    ],
+    "first_response": "I'm here for you. You don\u2019t have to figure this out alone.",
+    "follow_ups": [
+      "Would talking through your day help lighten the load?",
+      "Have you tried writing your thoughts down?",
+      "Do you want to do a quick mental reset together?"
+    ],
+    "affirmation": "Let\u2019s take one gentle step at a time \u2014 together."
+  }
+]

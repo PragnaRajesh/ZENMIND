@@ -1,66 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import avatar from '../../assets/therapist-avatar.png';
-import dataset from '../../data/therapy_dataset_large.json';
-
-// 🛠️ Stop commands
-const stopWords = ['stop', 'done', 'enough', 'no more', 'that’s it'];
-
-// 🎤 Respond with voice
-const speak = (text: string, onEndCallback?: () => void) => {
-  const utterance = new SpeechSynthesisUtterance(text);
-  const voices = window.speechSynthesis.getVoices();
-
-  const preferredVoices = [
-    'Google UK English Female',
-    'Samantha',
-    'Karen',
-    'Martha',
-    'Shelley (English (United States))',
-  ];
-
-  const selectedVoice = voices.find((v) => preferredVoices.includes(v.name));
-  if (selectedVoice) utterance.voice = selectedVoice;
-
-  utterance.rate = 0.95;
-  utterance.pitch = 1.05;
-  utterance.volume = 1;
-
-  utterance.onend = () => {
-    onEndCallback?.();
-  };
-
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utterance);
-};
-
-// 🔍 Match input to dataset
-const findMatchingCategory = (input: string) => {
-  const text = input.toLowerCase();
-  return dataset.find((item) =>
-    item.triggers.some((t: string) => text.includes(t))
-  );
-};
-
-const findResponse = (input: string): string => {
-  const text = input.toLowerCase();
-
-  if (stopWords.some((word) => text.includes(word))) {
-    return "Thank you for sharing with me. I'm here whenever you need me again.";
-  }
-
-  const matched = findMatchingCategory(input);
-  if (matched) {
-    const followups = matched.follow_ups || [];
-    const nextFollowUp =
-      followups[Math.floor(Math.random() * followups.length)] || '';
-    return `${matched.first_response} ${nextFollowUp} ${matched.affirmation}`;
-  }
-
-  return "I'm here to listen. Tell me more about what's on your mind.";
-};
+import dataset from '../../data/therapy_dataset.json';
+import '../../styles/therapist.css'; // make sure this file exists
 
 const TalkTherapy: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState<string | null>(null);
+  const [followUpIndex, setFollowUpIndex] = useState(0);
+  const [isSpeaking, setIsSpeaking] = useState(false); // for sound indicator
 
   const SpeechRecognition =
     (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -69,7 +16,80 @@ const TalkTherapy: React.FC = () => {
   recognition.lang = 'en-US';
   recognition.interimResults = false;
 
-  // 🎙️ Start / stop mic
+  const stopWords = ['stop', 'done', 'no more', 'enough', 'that’s it'];
+
+  const speak = (text: string, onEndCallback?: () => void) => {
+    if (!text) return;
+    setIsSpeaking(true);
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoices = [
+      'Google UK English Female',
+      'Samantha',
+      'Karen',
+      'Martha',
+      'Shelley (English (United States))'
+    ];
+    const selectedVoice = voices.find((v) => preferredVoices.includes(v.name));
+    if (selectedVoice) utterance.voice = selectedVoice;
+
+    utterance.rate = 0.95;
+    utterance.pitch = 1.05;
+    utterance.volume = 1;
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      onEndCallback?.();
+    };
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const findMatchingCategory = (input: string) => {
+    const text = input.toLowerCase();
+    return dataset.find((item) =>
+      item.triggers.some((trigger: string) => text.includes(trigger))
+    );
+  };
+
+  const findResponse = (input: string): string => {
+    const text = input.toLowerCase();
+
+    if (stopWords.some((word) => text.includes(word))) {
+      setCurrentCategory(null);
+      setFollowUpIndex(0);
+      return "Alright, we can pause here. I'm always here when you need me.";
+    }
+
+    if (!currentCategory) {
+      const matched = findMatchingCategory(text);
+      if (matched) {
+        setCurrentCategory(matched.category);
+        setFollowUpIndex(0);
+        return matched.first_response;
+      }
+      return "Could you share how you're feeling in another way?";
+    }
+
+    const matched = dataset.find((item) => item.category === currentCategory);
+
+    if (matched) {
+      if (followUpIndex < matched.follow_ups.length) {
+        const reply = matched.follow_ups[followUpIndex];
+        setFollowUpIndex(followUpIndex + 1);
+        return reply;
+      } else {
+        setCurrentCategory(null);
+        setFollowUpIndex(0);
+        return matched.affirmation;
+      }
+    }
+
+    return "I'm listening.";
+  };
+
   const startListening = () => {
     recognition.start();
     setIsListening(true);
@@ -82,17 +102,14 @@ const TalkTherapy: React.FC = () => {
 
   recognition.onresult = (event: any) => {
     const spokenText = event.results[0][0].transcript.toLowerCase();
-
-    if (stopWords.some((word) => spokenText.includes(word))) {
-      stopListening();
-      const goodbye = findResponse(spokenText);
-      speak(goodbye); // Final response without chaining
-      return;
-    }
-
     const response = findResponse(spokenText);
+
     speak(response, () => {
-      setTimeout(() => startListening(), 1500);
+      if (!stopWords.some((word) => spokenText.includes(word)) && currentCategory) {
+        setTimeout(() => startListening(), 1200);
+      } else {
+        stopListening();
+      }
     });
   };
 
@@ -102,26 +119,29 @@ const TalkTherapy: React.FC = () => {
   };
 
   useEffect(() => {
-    const preload = () => window.speechSynthesis.getVoices();
+    const loadVoices = () => window.speechSynthesis.getVoices();
     if (typeof window !== 'undefined') {
-      window.speechSynthesis.onvoiceschanged = preload;
-      preload();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+      loadVoices();
     }
   }, []);
 
   return (
-    <div className="flex flex-col items-center text-center bg-white/80 p-8 rounded-xl shadow-lg max-w-xl mx-auto">
+    <div className="flex flex-col items-center text-center bg-white/80 p-8 rounded-xl shadow-lg max-w-xl mx-auto fade-in">
       <h2 className="text-2xl font-semibold text-gray-800 mb-2">Talk Therapy</h2>
       <p className="text-gray-600 mb-4 max-w-md">
         Your therapist is here to listen, understand, and guide you — at your pace.
       </p>
 
-      <div className="w-56 h-auto mb-4">
+      <div className="relative w-56 h-auto mb-4 therapist-avatar">
         <img
           src={avatar}
           alt="Therapist Avatar"
-          className="w-full h-auto rounded-xl shadow-md bg-gradient-to-br from-pink-100 to-purple-100"
+          className={`w-full h-auto rounded-xl shadow-md bg-gradient-to-br from-pink-100 to-purple-100 ${
+            isSpeaking ? 'lip-move blink-animation' : ''
+          }`}
         />
+        {isSpeaking && <div className="sound-indicator"></div>}
       </div>
 
       <button
