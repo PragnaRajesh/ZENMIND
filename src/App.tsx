@@ -11,6 +11,8 @@ import { DailyAffirmation } from './components/DailyAffirmation';
 import { Feedback } from './components/Feedback';
 import { BrainBreaks } from './components/BrainBreaks';
 import { useAuthStore } from './store/authStore';
+import Dass21Screening from './components/Dass21Screening';
+
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -66,6 +68,14 @@ function App() {
               <PrivateRoute>
                 <Statistics />
               </PrivateRoute>
+            }
+          />
+          <Route
+            path="/dass21"
+            element={
+              <PrivateRoute>
+                <Dass21Screening />
+             </PrivateRoute>
             }
           />
           <Route

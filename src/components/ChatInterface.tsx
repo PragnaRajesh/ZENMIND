@@ -7,6 +7,8 @@ import { useChatStore } from '../store/chatStore';
 import { handleUserMessage } from '../utils/conversationUtils';
 import { createMessage } from '../utils/chatUtils';
 import TalkTherapy from './chat/TalkTherapy';
+import { Link } from 'react-router-dom';
+
 const ChatInterface: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'chat' | 'therapy'>('chat');
   const { messages, addMessage } = useChatStore();
@@ -61,6 +63,12 @@ const ChatInterface: React.FC = () => {
         >
           👩🏻 Talk Therapy
         </button>
+        {/* ✅ NEW DASS-21 BUTTON */}
+          <Link to="/dass21">
+            <button className="px-4 py-2 rounded-full text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 transition">
+              🧠 DASS-21 Test
+            </button>
+          </Link>
       </div>
 
       {/* Chat or Therapy View */}
