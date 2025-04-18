@@ -128,7 +128,6 @@ const TalkTherapy: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center text-center bg-white/80 p-8 rounded-xl shadow-lg max-w-xl mx-auto fade-in">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-2">Talk Therapy</h2>
       <p className="text-gray-600 mb-4 max-w-md">
         Your therapist is here to listen, understand, and guide you — at your pace.
       </p>

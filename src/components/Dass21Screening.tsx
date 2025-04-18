@@ -1,140 +1,169 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-type Question = {
-  id: number;
-  text: string;
-};
-
-const questions: Question[] = [
-  { id: 1, text: 'I found it hard to wind down' },
-  { id: 2, text: 'I was aware of dryness of my mouth' },
-  { id: 3, text: 'I couldn’t seem to experience any positive feeling at all' },
-  { id: 4, text: 'I experienced breathing difficulty' },
-  { id: 5, text: 'I found it difficult to work up the initiative to do things' },
-  { id: 6, text: 'I tended to over-react to situations' },
-  { id: 7, text: 'I experienced trembling' },
-  { id: 8, text: 'I felt that I was using a lot of nervous energy' },
-  { id: 9, text: 'I was worried about situations in which I might panic' },
-  { id: 10, text: 'I felt that I had nothing to look forward to' },
-  { id: 11, text: 'I found myself getting agitated' },
-  { id: 12, text: 'I found it difficult to relax' },
-  { id: 13, text: 'I felt down-hearted and blue' },
-  { id: 14, text: 'I was intolerant of anything that kept me from getting on with what I was doing' },
-  { id: 15, text: 'I felt I was close to panic' },
-  { id: 16, text: 'I was unable to become enthusiastic about anything' },
-  { id: 17, text: 'I felt I wasn’t worth much as a person' },
-  { id: 18, text: 'I felt that I was rather touchy' },
-  { id: 19, text: 'I was aware of the action of my heart in the absence of physical exertion' },
-  { id: 20, text: 'I felt scared without any good reason' },
-  { id: 21, text: 'I felt that life was meaningless' }
+const questions = [
+  'I found it hard to wind down',
+  'I was aware of dryness of my mouth',
+  'I couldn’t seem to experience any positive feeling at all',
+  'I experienced breathing difficulty',
+  'I found it difficult to work up the initiative to do things',
+  'I tended to over-react to situations',
+  'I experienced trembling',
+  'I felt that I was using a lot of nervous energy',
+  'I was worried about situations in which I might panic',
+  'I felt that I had nothing to look forward to',
+  'I found myself getting agitated',
+  'I found it difficult to relax',
+  'I felt down-hearted and blue',
+  'I was intolerant of anything that kept me from getting on with what I was doing',
+  'I felt I was close to panic',
+  'I was unable to become enthusiastic about anything',
+  'I felt I wasn’t worth much as a person',
+  'I felt that I was rather touchy',
+  'I was aware of the action of my heart in the absence of physical exertion',
+  'I felt scared without any good reason',
+  'I felt that life was meaningless',
 ];
 
 const options = [
-  { label: 'Did not apply to me at all', value: 0 },
-  { label: 'Applied to me to some degree', value: 1 },
-  { label: 'Applied to me a considerable degree', value: 2 },
-  { label: 'Applied to me very much', value: 3 }
+  { label: 'Did not apply at all', value: 0 },
+  { label: 'Applied somewhat', value: 1 },
+  { label: 'Applied considerably', value: 2 },
+  { label: 'Applied very much', value: 3 },
 ];
 
+const depressionItems = [3, 5, 10, 13, 16, 17, 21];
+const anxietyItems = [2, 4, 7, 9, 15, 19, 20];
+const stressItems = [1, 6, 8, 11, 12, 14, 18];
+
 const Dass21Screening: React.FC = () => {
-  const [responses, setResponses] = useState<number[]>(Array(21).fill(-1));
+  const [responses, setResponses] = useState<number[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const navigate = useNavigate();
 
-  const handleChange = (questionIndex: number, value: number) => {
+  const handleAnswer = (value: number) => {
     const updated = [...responses];
-    updated[questionIndex] = value;
+    updated[currentIndex] = value;
     setResponses(updated);
-  };
 
-  const handleSubmit = () => {
-    if (responses.includes(-1)) {
-      alert('Please answer all questions before submitting.');
-      return;
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      setSubmitted(true);
+      setTimeout(() => checkModerateRedirect(), 2000);
     }
-    setSubmitted(true);
   };
 
-  const getScores = () => {
-    const depressionItems = [3, 5, 10, 13, 16, 17, 20];
-    const anxietyItems = [2, 4, 7, 9, 15, 18, 19];
-    const stressItems = [0, 1, 6, 8, 11, 12, 14];
+  const getScore = (items: number[]) =>
+    items.reduce((acc, i) => acc + responses[i - 1], 0) * 2;
 
-    const depression = depressionItems.reduce((acc, i) => acc + responses[i], 0) * 2;
-    const anxiety = anxietyItems.reduce((acc, i) => acc + responses[i], 0) * 2;
-    const stress = stressItems.reduce((acc, i) => acc + responses[i], 0) * 2;
-
-    return { depression, anxiety, stress };
-  };
-
-  const getInterpretation = (score: number, type: 'depression' | 'anxiety' | 'stress') => {
+  const getLevel = (score: number, type: 'depression' | 'anxiety' | 'stress') => {
     const ranges = {
-      depression: [
-        { label: 'Normal', max: 9 },
-        { label: 'Mild', max: 13 },
-        { label: 'Moderate', max: 20 },
-        { label: 'Severe', max: 27 },
-        { label: 'Extremely Severe', max: Infinity }
-      ],
-      anxiety: [
-        { label: 'Normal', max: 7 },
-        { label: 'Mild', max: 9 },
-        { label: 'Moderate', max: 14 },
-        { label: 'Severe', max: 19 },
-        { label: 'Extremely Severe', max: Infinity }
-      ],
-      stress: [
-        { label: 'Normal', max: 14 },
-        { label: 'Mild', max: 18 },
-        { label: 'Moderate', max: 25 },
-        { label: 'Severe', max: 33 },
-        { label: 'Extremely Severe', max: Infinity }
-      ]
+      depression: [9, 13, 20, 27],
+      anxiety: [7, 9, 14, 19],
+      stress: [14, 18, 25, 33],
     };
-
-    const matched = ranges[type].find(range => score <= range.max);
-    return matched ? matched.label : 'Unknown';
+    const labels = ['Normal', 'Mild', 'Moderate', 'Severe', 'Extremely Severe'];
+    const index = ranges[type].findIndex((max) => score <= max);
+    return labels[index === -1 ? 4 : index];
   };
 
-  const scores = getScores();
+  const checkModerateRedirect = () => {
+    const d = getLevel(getScore(depressionItems), 'depression');
+    const a = getLevel(getScore(anxietyItems), 'anxiety');
+    const s = getLevel(getScore(stressItems), 'stress');
+    if ([d, a, s].includes('Moderate')) {
+      navigate('/chat');
+    }
+  };
+
+  const depressionScore = getScore(depressionItems);
+  const anxietyScore = getScore(anxietyItems);
+  const stressScore = getScore(stressItems);
+
+  const depressionLevel = getLevel(depressionScore, 'depression');
+  const anxietyLevel = getLevel(anxietyScore, 'anxiety');
+  const stressLevel = getLevel(stressScore, 'stress');
+
+  const isSevere =
+    ['Severe', 'Extremely Severe'].includes(depressionLevel) ||
+    ['Severe', 'Extremely Severe'].includes(anxietyLevel) ||
+    ['Severe', 'Extremely Severe'].includes(stressLevel);
 
   return (
-    <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
-      <h2 className="text-2xl font-bold mb-4">DASS-21 Mental Health Screening</h2>
+    <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
+
       {!submitted ? (
-        <div className="space-y-6">
-          {questions.map((q, idx) => (
-            <div key={q.id}>
-              <p className="font-medium mb-2">{q.id}. {q.text}</p>
-              <div className="space-y-1">
-                {options.map((option, optIdx) => (
-                  <label key={optIdx} className="block">
-                    <input
-                      type="radio"
-                      name={`question-${q.id}`}
-                      value={option.value}
-                      checked={responses[idx] === option.value}
-                      onChange={() => handleChange(idx, option.value)}
-                      className="mr-2"
-                    />
-                    {option.label}
-                  </label>
-                ))}
-              </div>
+        <>
+          <p className="text-lg font-medium mb-2">
+            Q{currentIndex + 1}. {questions[currentIndex]}
+          </p>
+
+          <div className="space-y-2">
+            {options.map((opt, i) => (
+              <button
+                key={i}
+                className="block w-full px-4 py-2 rounded bg-purple-100 hover:bg-purple-200 text-left"
+                onClick={() => handleAnswer(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-6">
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div
+                className="bg-purple-600 h-2.5 rounded-full transition-all duration-300"
+                style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
+              ></div>
             </div>
-          ))}
-          <button
-            className="mt-6 px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-            onClick={handleSubmit}
-          >
-            Submit
-          </button>
-        </div>
+            <p className="text-sm mt-1 text-gray-500 text-right">
+              {currentIndex + 1} / {questions.length}
+            </p>
+          </div>
+        </>
       ) : (
-        <div className="mt-6 text-lg">
-          <h3 className="font-semibold mb-2">Your Scores</h3>
-          <p><strong>Depression:</strong> {scores.depression} — {getInterpretation(scores.depression, 'depression')}</p>
-          <p><strong>Anxiety:</strong> {scores.anxiety} — {getInterpretation(scores.anxiety, 'anxiety')}</p>
-          <p><strong>Stress:</strong> {scores.stress} — {getInterpretation(scores.stress, 'stress')}</p>
+        <div className="space-y-4 text-lg">
+          <p>
+            <strong>Depression:</strong> {depressionScore} — {depressionLevel}
+          </p>
+          <p>
+            <strong>Anxiety:</strong> {anxietyScore} — {anxietyLevel}
+          </p>
+          <p>
+            <strong>Stress:</strong> {stressScore} — {stressLevel}
+          </p>
+
+          {/* 🌟 Affirmation */}
+          <div className="mt-4 p-4 bg-green-100 border border-green-300 rounded-md text-green-800">
+            You’ve taken an important step by completing this check-in. You are not alone — support is always here for you 🫂❤️
+          </div>
+
+          {/* 🧘 Grounding Suggestion for Moderate */}
+          {['Moderate'].some((level) =>
+            [depressionLevel, anxietyLevel, stressLevel].includes(level)
+          ) && (
+            <div className="mt-4 p-4 bg-blue-100 border border-blue-300 rounded-md text-blue-800">
+              🧘 Try a quick grounding technique: Breathe in for 4 seconds, hold for 4, and exhale for 6. Or try the 5-4-3-2-1 mindfulness trick to calm your mind.
+            </div>
+          )}
+
+          {/* 🚨 Severe Level: Call Therapist */}
+          {isSevere && (
+            <div className="mt-6">
+              <p className="text-red-600 font-semibold mb-2">
+                We recommend reaching out to a therapist immediately.
+              </p>
+              <a
+                href="tel:+919876543210"
+                className="inline-block px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
+              >
+                📞 Call Therapist
+              </a>
+            </div>
+          )}
         </div>
       )}
     </div>

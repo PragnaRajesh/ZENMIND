@@ -7,10 +7,10 @@ import { useChatStore } from '../store/chatStore';
 import { handleUserMessage } from '../utils/conversationUtils';
 import { createMessage } from '../utils/chatUtils';
 import TalkTherapy from './chat/TalkTherapy';
-import { Link } from 'react-router-dom';
+import Dass21Screening from './Dass21Screening';
 
 const ChatInterface: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'chat' | 'therapy'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'therapy' | 'dass'>('chat');
   const { messages, addMessage } = useChatStore();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -51,7 +51,7 @@ const ChatInterface: React.FC = () => {
               : 'bg-white text-purple-600 border border-purple-300'
           }`}
         >
-          💬 Chat View
+          💬 Chat Therapy
         </button>
         <button
           onClick={() => setActiveTab('therapy')}
@@ -63,16 +63,20 @@ const ChatInterface: React.FC = () => {
         >
           👩🏻 Talk Therapy
         </button>
-        {/* ✅ NEW DASS-21 BUTTON */}
-          <Link to="/dass21">
-            <button className="px-4 py-2 rounded-full text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 transition">
-              🧠 DASS-21 Test
-            </button>
-          </Link>
+        <button
+          onClick={() => setActiveTab('dass')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+            activeTab === 'dass'
+              ? 'bg-blue-500 text-white'
+              : 'bg-white text-blue-500 border border-blue-300'
+          }`}
+        >
+          🧠 DASS-21 Screening
+        </button>
       </div>
 
-      {/* Chat or Therapy View */}
-      {activeTab === 'chat' ? (
+      {/* Views */}
+      {activeTab === 'chat' && (
         <div className="flex flex-col w-full max-w-6xl h-[85vh] bg-white/80 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden mx-auto">
           <div className="p-4 border-b">
             <h2 className="text-xl font-semibold text-gray-800">Your Safe Space</h2>
@@ -113,9 +117,17 @@ const ChatInterface: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
         </div>
-      ) : (
+      )}
+
+      {activeTab === 'therapy' && (
         <div className="bg-white/80 p-6 rounded-xl shadow-lg max-w-4xl mx-auto">
           <TalkTherapy />
+        </div>
+      )}
+
+      {activeTab === 'dass' && (
+        <div className="bg-white/80 p-6 rounded-xl shadow-lg max-w-4xl mx-auto">
+          <Dass21Screening />
         </div>
       )}
     </div>
