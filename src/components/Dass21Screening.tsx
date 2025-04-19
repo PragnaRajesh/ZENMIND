@@ -157,7 +157,7 @@ const Dass21Screening: React.FC = () => {
                 We recommend reaching out to a therapist immediately.
               </p>
               <a
-                href="tel:+919876543210"
+                href="tel:+919901057170"
                 className="inline-block px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
               >
                 📞 Call Therapist
