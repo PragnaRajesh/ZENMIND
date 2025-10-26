@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { MemoryGame } from './games/MemoryGame';
 import { WordScramble } from './games/WordScramble';
+import { BreathingExercise } from './games/BreathingExercise';
+import { MandalaColoring } from './games/MandalaColoring';
+import { MiniSudoku } from './games/MiniSudoku';
 import { Brain, Sparkles } from 'lucide-react';
 
 export const BrainBreaks: React.FC = () => {
-  const [activeGame, setActiveGame] = useState<'memory' | 'word'>('memory');
+  const [activeGame, setActiveGame] = useState<'memory' | 'word' | 'breathing' | 'mandala' | 'sudoku'>('memory');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 py-12">
@@ -14,19 +17,15 @@ export const BrainBreaks: React.FC = () => {
             <Brain className="h-8 w-8 text-purple-600 mr-2" />
             <h1 className="text-3xl font-bold text-gray-900">Brain Breaks</h1>
           </div>
-          <p className="text-gray-600">
-            Take a mental refresh with these engaging mind games
-          </p>
+          <p className="text-gray-600">Take a mental refresh with these engaging mind games</p>
         </div>
 
         <div className="flex justify-center mb-8">
-          <div className="inline-flex rounded-lg border border-gray-200 p-1 bg-white">
+          <div className="inline-flex rounded-lg border border-gray-200 p-1 bg-white overflow-x-auto">
             <button
               onClick={() => setActiveGame('memory')}
               className={`px-4 py-2 rounded-md ${
-                activeGame === 'memory'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-600 hover:text-purple-600'
+                activeGame === 'memory' ? 'bg-purple-600 text-white' : 'text-gray-600 hover:text-purple-600'
               }`}
             >
               Memory Match
@@ -34,17 +33,43 @@ export const BrainBreaks: React.FC = () => {
             <button
               onClick={() => setActiveGame('word')}
               className={`px-4 py-2 rounded-md ${
-                activeGame === 'word'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-600 hover:text-purple-600'
+                activeGame === 'word' ? 'bg-purple-600 text-white' : 'text-gray-600 hover:text-purple-600'
               }`}
             >
               Word Scramble
             </button>
+            <button
+              onClick={() => setActiveGame('breathing')}
+              className={`px-4 py-2 rounded-md ${
+                activeGame === 'breathing' ? 'bg-purple-600 text-white' : 'text-gray-600 hover:text-purple-600'
+              }`}
+            >
+              Breathing Exercise
+            </button>
+            <button
+              onClick={() => setActiveGame('mandala')}
+              className={`px-4 py-2 rounded-md ${
+                activeGame === 'mandala' ? 'bg-purple-600 text-white' : 'text-gray-600 hover:text-purple-600'
+              }`}
+            >
+              Mandala Coloring
+            </button>
+            <button
+              onClick={() => setActiveGame('sudoku')}
+              className={`px-4 py-2 rounded-md ${
+                activeGame === 'sudoku' ? 'bg-purple-600 text-white' : 'text-gray-600 hover:text-purple-600'
+              }`}
+            >
+              Mini Sudoku
+            </button>
           </div>
         </div>
 
-        {activeGame === 'memory' ? <MemoryGame /> : <WordScramble />}
+        {activeGame === 'memory' && <MemoryGame />}
+        {activeGame === 'word' && <WordScramble />}
+        {activeGame === 'breathing' && <BreathingExercise />}
+        {activeGame === 'mandala' && <MandalaColoring />}
+        {activeGame === 'sudoku' && <MiniSudoku />}
 
         <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center mb-4">

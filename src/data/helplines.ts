@@ -10,7 +10,7 @@ export const helplines = [
   {
     id: 2,
     country: "India",
-    number: "9152987821",
+    number: "9901057170",
     organization: "AASRA",
     hours: "24/7",
     languages: ["English"]
@@ -26,7 +26,7 @@ export const helplines = [
   {
     id: 4,
     country: "India",
-    number: "1800-270-1813",
+    number: "9880531626",
     organization: "iCALL",
     hours: "10am - 8pm",
     languages: ["English"]
@@ -34,7 +34,7 @@ export const helplines = [
   {
     id: 5,
     country: "India",
-    number: "1800-123-0016",
+    number: "9611175254",
     organization: "Mpower",
     hours: "24/7",
     languages: ["English"]

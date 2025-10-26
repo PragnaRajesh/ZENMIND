@@ -51,6 +51,7 @@ const Dass21Screening: React.FC = () => {
       setCurrentIndex(currentIndex + 1);
     } else {
       setSubmitted(true);
+      submitResultsToBackend(); // 🚀 Send to backend
       setTimeout(() => checkModerateRedirect(), 2000);
     }
   };
@@ -69,15 +70,6 @@ const Dass21Screening: React.FC = () => {
     return labels[index === -1 ? 4 : index];
   };
 
-  const checkModerateRedirect = () => {
-    const d = getLevel(getScore(depressionItems), 'depression');
-    const a = getLevel(getScore(anxietyItems), 'anxiety');
-    const s = getLevel(getScore(stressItems), 'stress');
-    if ([d, a, s].includes('Moderate')) {
-      navigate('/chat');
-    }
-  };
-
   const depressionScore = getScore(depressionItems);
   const anxietyScore = getScore(anxietyItems);
   const stressScore = getScore(stressItems);
@@ -91,8 +83,35 @@ const Dass21Screening: React.FC = () => {
     ['Severe', 'Extremely Severe'].includes(anxietyLevel) ||
     ['Severe', 'Extremely Severe'].includes(stressLevel);
 
+  const checkModerateRedirect = () => {
+    if (
+      [depressionLevel, anxietyLevel, stressLevel].includes('Moderate') &&
+      !isSevere
+    ) {
+      navigate('/chat'); // 💡 assumes Talk Therapy tab is on /chat
+    }
+  };
+
+  const submitResultsToBackend = async () => {
+    try {
+      await fetch('http://localhost:8080/api/dassscore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          depression: depressionScore,
+          anxiety: anxietyScore,
+          stress: stressScore,
+          level: isSevere ? 'Severe' : depressionLevel // can adjust logic
+        })
+      });
+    } catch (error) {
+      console.error('Failed to submit to backend:', error);
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
+      <h2 className="text-2xl font-bold mb-4">🧠 DASS-21 Screening</h2>
 
       {!submitted ? (
         <>
@@ -125,39 +144,18 @@ const Dass21Screening: React.FC = () => {
           </div>
         </>
       ) : (
-        <div className="space-y-4 text-lg">
-          <p>
-            <strong>Depression:</strong> {depressionScore} — {depressionLevel}
-          </p>
-          <p>
-            <strong>Anxiety:</strong> {anxietyScore} — {anxietyLevel}
-          </p>
-          <p>
-            <strong>Stress:</strong> {stressScore} — {stressLevel}
-          </p>
+        <div className="space-y-3 text-lg">
+          <p><strong>Depression:</strong> {depressionScore} — {depressionLevel}</p>
+          <p><strong>Anxiety:</strong> {anxietyScore} — {anxietyLevel}</p>
+          <p><strong>Stress:</strong> {stressScore} — {stressLevel}</p>
 
-          {/* 🌟 Affirmation */}
-          <div className="mt-4 p-4 bg-green-100 border border-green-300 rounded-md text-green-800">
-            You’ve taken an important step by completing this check-in. You are not alone — support is always here for you 🫂❤️
-          </div>
-
-          {/* 🧘 Grounding Suggestion for Moderate */}
-          {['Moderate'].some((level) =>
-            [depressionLevel, anxietyLevel, stressLevel].includes(level)
-          ) && (
-            <div className="mt-4 p-4 bg-blue-100 border border-blue-300 rounded-md text-blue-800">
-              🧘 Try a quick grounding technique: Breathe in for 4 seconds, hold for 4, and exhale for 6. Or try the 5-4-3-2-1 mindfulness trick to calm your mind.
-            </div>
-          )}
-
-          {/* 🚨 Severe Level: Call Therapist */}
           {isSevere && (
             <div className="mt-6">
               <p className="text-red-600 font-semibold mb-2">
                 We recommend reaching out to a therapist immediately.
               </p>
               <a
-                href="tel:+919901057170"
+                href="tel:+918792153915"
                 className="inline-block px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
               >
                 📞 Call Therapist
