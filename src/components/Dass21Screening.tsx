@@ -88,7 +88,7 @@ const Dass21Screening: React.FC = () => {
       [depressionLevel, anxietyLevel, stressLevel].includes('Moderate') &&
       !isSevere
     ) {
-      navigate('/chat'); // 💡 assumes Talk Therapy tab is on /chat
+      navigate('/chat'); // assumes Talk Therapy tab is on /chat
     }
   };
 
@@ -155,7 +155,7 @@ const Dass21Screening: React.FC = () => {
                 We recommend reaching out to a therapist immediately.
               </p>
               <a
-                href="tel:+918792153915"
+                href="tel:+91 9901057170"
                 className="inline-block px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
               >
                 📞 Call Therapist
