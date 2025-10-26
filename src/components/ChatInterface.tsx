@@ -30,13 +30,46 @@ const ChatInterface: React.FC = () => {
     addMessage(userMessage);
     setInput('');
 
-    setTimeout(() => {
-      const replies = handleUserMessage(content);
-      replies.forEach((reply) => {
-        const botMessage = createMessage(reply, 'bot');
-        addMessage(botMessage);
+    const systemPrompt = `You are a calm, supportive mental wellbeing companion.\nYou talk naturally and keep your messages short, clear, and kind.\nListen to the user’s feelings with warmth and empathy — like a caring friend who understands.\nDon’t ask too many questions at once. Ask only one gentle, helpful question if needed.\nGive emotional support, not therapy or medical advice. Avoid diagnosing or labeling conditions.\nWhen the user feels low, remind them that it’s okay to feel that way, and offer gentle suggestions like taking a short break, journaling, breathing, walking, listening to music, or talking to someone they trust.\nIf the user sounds very upset or mentions self-harm, encourage them to reach out for immediate help and share crisis helpline resources.\nKeep your tone soft, kind, human, hopeful. Keep messages under 3 sentences.`;
+
+    try {
+      const key = (import.meta.env as any).VITE_OPENAI_KEY;
+      if (!key) throw new Error('Missing OpenAI API key');
+
+      const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${key}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content },
+          ],
+          max_tokens: 200,
+          temperature: 0.7,
+        }),
       });
-    }, 1000);
+
+      if (!resp.ok) throw new Error('OpenAI request failed');
+      const data = await resp.json();
+      const text = data?.choices?.[0]?.message?.content?.trim();
+
+      if (text) {
+        const botMessage = createMessage(text, 'bot');
+        addMessage(botMessage);
+      } else {
+        // fallback to local replies
+        const replies = handleUserMessage(content);
+        replies.forEach((reply) => addMessage(createMessage(reply, 'bot')));
+      }
+    } catch (e) {
+      // On error fallback to local replies
+      const replies = handleUserMessage(content);
+      replies.forEach((reply) => addMessage(createMessage(reply, 'bot')));
+    }
   };
 
   return (

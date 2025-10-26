@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import avatar from '../../assets/therapist-avatar.png';
-import dataset from '../../data/therapy_dataset.json';
 import '../../styles/therapist.css'; // make sure this file exists
 
 const TalkTherapy: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
-  const [currentCategory, setCurrentCategory] = useState<string | null>(null);
-  const [followUpIndex, setFollowUpIndex] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false); // for sound indicator
 
   const SpeechRecognition =
@@ -16,7 +13,7 @@ const TalkTherapy: React.FC = () => {
   recognition.lang = 'en-US';
   recognition.interimResults = false;
 
-  const stopWords = ['stop', 'done', 'no more', 'enough', 'that’s it'];
+  const stopWords = ['stop', 'done', 'no more', 'enough', "that's it"]; // normalized
 
   const speak = (text: string, onEndCallback?: () => void) => {
     if (!text) return;
@@ -47,66 +44,81 @@ const TalkTherapy: React.FC = () => {
     window.speechSynthesis.speak(utterance);
   };
 
-  const findMatchingCategory = (input: string) => {
-    const text = input.toLowerCase();
-    return dataset.find((item) =>
-      item.triggers.some((trigger: string) => text.includes(trigger))
-    );
-  };
+  const systemPrompt = `You are a calm, supportive mental wellbeing companion.\nYou talk naturally and keep your messages short, clear, and kind.\nListen to the user’s feelings with warmth and empathy — like a caring friend who understands.\nDon’t ask too many questions at once. Ask only one gentle, helpful question if needed.\nGive emotional support, not therapy or medical advice. Avoid diagnosing or labeling conditions.\nWhen the user feels low, remind them that it’s okay to feel that way, and offer gentle suggestions like taking a short break, journaling, breathing, walking, listening to music, or talking to someone they trust.\nIf the user sounds very upset or mentions self-harm, encourage them to reach out for immediate help and share crisis helpline resources.\nKeep your tone soft, kind, human, hopeful. Keep messages under 3 sentences.`;
 
-  const findResponse = (input: string): string => {
-    const text = input.toLowerCase();
+  const getAIResponse = async (inputText: string): Promise<string> => {
+    try {
+      const key = (import.meta.env as any).VITE_OPENAI_KEY;
+      if (!key) throw new Error('Missing OpenAI API key');
 
-    if (stopWords.some((word) => text.includes(word))) {
-      setCurrentCategory(null);
-      setFollowUpIndex(0);
-      return "Alright, we can pause here. I'm always here when you need me.";
-    }
+      const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${key}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: inputText },
+          ],
+          max_tokens: 250,
+          temperature: 0.7,
+        }),
+      });
 
-    if (!currentCategory) {
-      const matched = findMatchingCategory(text);
-      if (matched) {
-        setCurrentCategory(matched.category);
-        setFollowUpIndex(0);
-        return matched.first_response;
+      if (!resp.ok) {
+        console.error('OpenAI error', resp.status, await resp.text());
+        return "I'm here with you — could you tell me a little more?";
       }
-      return "Could you share how you're feeling in another way?";
+
+      const data = await resp.json();
+      const text = data?.choices?.[0]?.message?.content?.trim();
+      return text || "I'm here with you — could you tell me a little more?";
+    } catch (e) {
+      console.error('AI request failed', e);
+      return "I'm here with you — could you tell me a little more?";
     }
-
-    const matched = dataset.find((item) => item.category === currentCategory);
-
-    if (matched) {
-      if (followUpIndex < matched.follow_ups.length) {
-        const reply = matched.follow_ups[followUpIndex];
-        setFollowUpIndex(followUpIndex + 1);
-        return reply;
-      } else {
-        setCurrentCategory(null);
-        setFollowUpIndex(0);
-        return matched.affirmation;
-      }
-    }
-
-    return "I'm listening.";
   };
 
   const startListening = () => {
-    recognition.start();
-    setIsListening(true);
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch (e) {
+      console.error('Failed to start recognition', e);
+    }
   };
 
   const stopListening = () => {
-    recognition.stop();
+    try {
+      recognition.stop();
+    } catch (e) {}
     setIsListening(false);
   };
 
-  recognition.onresult = (event: any) => {
-    const spokenText = event.results[0][0].transcript.toLowerCase();
-    const response = findResponse(spokenText);
+  recognition.onresult = async (event: any) => {
+    const spokenText = (event.results[0][0].transcript || '').toLowerCase().trim();
+
+    if (!spokenText) {
+      stopListening();
+      return;
+    }
+
+    if (stopWords.some((w) => spokenText.includes(w))) {
+      speak("Alright, we can pause here. I'm always here when you need me.", () => stopListening());
+      return;
+    }
+
+    const response = await getAIResponse(spokenText);
 
     speak(response, () => {
-      if (!stopWords.some((word) => spokenText.includes(word)) && currentCategory) {
-        setTimeout(() => startListening(), 1200);
+      // continue listening after a short pause unless user asked to stop
+      if (!stopWords.some((w) => spokenText.includes(w))) {
+        setTimeout(() => {
+          startListening();
+        }, 900);
       } else {
         stopListening();
       }
