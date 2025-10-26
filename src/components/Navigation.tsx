@@ -18,7 +18,7 @@ export const Navigation: React.FC = () => {
           <div className="flex">
             <Link to="/" className="flex items-center">
               <Heart className="h-8 w-8 text-purple-600" />
-              <span className="ml-2 text-xl font-semibold">MindMateAI</span>
+              <span className="ml-2 text-xl font-semibold">ZenMind</span>
             </Link>
             
             {isAuthenticated && (
