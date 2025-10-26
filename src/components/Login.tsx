@@ -25,7 +25,7 @@ export const Login: React.FC = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="text-center">
           <h2 className="text-4xl font-extrabold text-white mb-2 drop-shadow-lg">
-            Welcome to MindMateAI
+            Welcome to ZenMind
           </h2>
           <p className="text-lg text-white mb-8 drop-shadow-md">
             Your compassionate companion for mental wellness
